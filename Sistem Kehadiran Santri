@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Informasi Absensi Santri</title>
+    <style>
+        /* CSS Umum */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            max-width: 800px;
+            height: 90vh;
+            margin: 0 auto;
+            background: white;
+            padding: 0;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Navigasi Sisi Kiri (Sidebar) - HIJAU TUA */
+        .sidebar {
+            width: 180px;
+            background-color: #004d40; /* Hijau Tua */
+            padding: 20px 10px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #00382e;
+        }
+        .sidebar button {
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-align: left;
+            background-color: transparent;
+            color: #e8f5e9;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .sidebar button:hover {
+            background-color: #006655;
+            color: white;
+        }
+        .sidebar button.active {
+            background-color: #1b5e20;
+            color: white;
+        }
+
+        /* Area Konten Utama */
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        /* Gaya Jam Digital */
+        #waktu-sekarang {
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #004d40;
+            margin-bottom: 15px;
+            padding: 5px;
+            border-bottom: 2px solid #ccc;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        /* Gaya Halaman Beranda */
+        #home-content h2 { text-align: center; color: #007bff; margin-bottom: 5px; }
+        
+        .info-card { background-color: #e9ecef; padding: 15px; border-radius: 8px; margin-top: 15px; text-align: center; }
+        .info-card h3 { margin-top: 0; color: #333; }
+        .info-card p { font-size: 3em; font-weight: bold; color: #28a745; margin: 0; }
+        
+        /* Gaya Diagram Lingkaran */
+        .diagram-control {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 0 5px;
+            margin-top: 40px;
+        }
+        .diagram-control h3 {
+            margin: 0;
+            color: #004d40;
+        }
+
+        .diagram-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .diagram-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-top: 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .pie-chart {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+        }
+        .chart-legend {
+            list-style: none;
+            padding: 0;
+            text-align: left;
+            font-size: 0.9em;
+        }
+        .chart-legend li {
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .legend-color {
+            width: 10px;
+            height: 10px;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+        .legend-tepat-waktu { background-color: #28a745; }
+        .legend-terlambat { background-color: #dc3545; }
+        .legend-izin { background-color: #007bff; }
+        .legend-sakit { background-color: #ffc107; }
+        
+        /* Gaya Tombol Rekap */
+        #btn-toggle-diagram {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.1s;
+        }
+        #btn-toggle-diagram:hover {
+            background-color: #0056b3;
+        }
+        
+        /* Gaya Tombol WA Diagram */
+        #btn-wa-diagram {
+            background-color: #25d366; /* Hijau WhatsApp */
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.1s;
+        }
+        #btn-wa-diagram:hover {
+             background-color: #128c7e;
+        }
+
+        /* Gaya Form Absensi & Tombol Submit */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        select, button.submit-button, input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box; 
+        }
+        button.submit-button {
+            margin-top: 20px;
+            background-color: #28a745; 
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.1s;
+        }
+        
+        /* Status Absen dan Riwayat */
+        #status-absen { margin-top: 20px; padding: 15px; border-radius: 5px; text-align: center; background-color: #e9ecef; color: #333; }
+        #riwayat-absen { margin-top: 30px; }
+        #riwayat-absen ul { list-style: none; padding: 0; }
+        #riwayat-absen li { background: #fff; padding: 10px; margin-bottom: 5px; border: 1px solid #ddd; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .error { color: red; font-weight: bold; background-color: #f8d7da; border: 1px solid #f5c6cb; }
+
+        /* Gaya Status Absensi */
+        .status-ok { color: white; background-color: #28a745; padding: 4px 8px; border-radius: 4px; font-weight: bold; } 
+        .status-late { color: white; background-color: #dc3545; padding: 4px 8px; border-radius: 4px; font-weight: bold; } 
+        .status-permission { color: #004085; background-color: #cce5ff; padding: 4px 8px; border-radius: 4px; } 
+        .status-sick { color: #721c24; background-color: #f5c6cb; padding: 4px 8px; border-radius: 4px; } 
+
+        /* Gaya Tombol Reset */
+        #btn-reset {
+            background-color: #ffc107;
+            color: #333;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.1s;
+        }
+        
+        /* Gaya Halaman Laporan Absensi Keseluruhan */
+        .riwayat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        #btn-wa-laporan {
+            background-color: #25d366; /* Hijau WhatsApp */
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.1s;
+        }
+        #btn-wa-laporan:hover {
+             background-color: #128c7e;
+        }
+        
+        .riwayat-container {
+            max-height: 500px; 
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            background-color: #fff;
+        }
+        .riwayat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .riwayat-item:last-child {
+            border-bottom: none;
+        }
+        .riwayat-info {
+            flex-grow: 1;
+        }
+        .riwayat-info strong {
+            font-size: 1.1em;
+        }
+        .riwayat-info small {
+            display: block;
+            color: #666;
+        }
+        
+        /* Gaya untuk Laporan Santri */
+        .report-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        .report-section h3 {
+            border-bottom: 2px solid #004d40;
+            padding-bottom: 5px;
+            margin-top: 0;
+            color: #004d40;
+        }
+        .santri-list {
+            list-style-type: none;
+            padding-left: 0;
+            column-count: 2; /* Tampilkan dalam 2 kolom */
+            column-gap: 30px;
+        }
+        .santri-list li {
+            padding: 5px 0;
+            border-bottom: 1px dotted #eee;
+        }
+
+        /* --- Gaya BARU untuk Modal (Password Prompt di Tengah) --- */
+        #password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* Overlay */
+            display: flex; /* Menggunakan flexbox untuk centering */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000; /* Pastikan di atas semua konten */
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            width: 300px;
+        }
+        .modal-content h2 {
+            color: #004d40;
+            margin-bottom: 20px;
+            margin-top: 0;
+        }
+        #password-input {
+            width: 90%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 1.1em;
+            outline: none;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        .modal-content .submit-button, .modal-content .cancel-button {
+            width: 100px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.1s;
+            margin-top: 0; /* Override existing button style */
+            border: none;
+            font-size: 1em;
+        }
+        .modal-content .submit-button {
+            background-color: #007bff;
+            color: white;
+        }
+        .modal-content .cancel-button {
+            background-color: #ccc;
+            color: #333;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="sidebar">
+            <button id="nav-beranda" onclick="showContent('home')" class="active">🏠 Beranda</button>
+            <button id="nav-laporan-santri" onclick="showContent('laporan-santri')">📊 Laporan Data Santri</button>
+            <button id="nav-laporan-absensi" onclick="showContent('laporan-absensi')">📋 Laporan Data Absensi</button>
+            <button id="nav-absensi" onclick="showPasswordModal()">📝 Absensi Santri</button>
+        </div>
+
+        <div class="main-content">
+            
+            <div id="waktu-sekarang"></div>
+
+            <div id="home-content">
+                <div class="logo-display" style="text-align: center; margin-bottom: 25px;">
+                    <div style="font-size: 2em; font-weight: bold; color: #004d40;">LOGO</div>
+                </div>
+                <h1 style="color: #007bff; text-align: center; margin-top: 5px; margin-bottom: 5px;">Sistem Kehadiran Digital</h1>
+                <h2 style="text-align: center; color: #333; margin-top: 0; margin-bottom: 20px;">HMPM NURUL HUDA</h2>
+                
+                <p style="text-align: center; font-weight: bold; margin-bottom: 5px;">
+                    Rekapitulasi Hari Ini
+                </p>
+                <div id="rekap-waktu-display" style="text-align: center; font-size: 1.5em; font-weight: 800; color: #dc3545; margin-bottom: 25px;">
+                    </div>
+                
+                <div class="rekap-card-group-main" style="display: flex; justify-content: space-between; gap: 15px; margin-bottom: 40px;">
+                    <div class="rekap-card-main" style="flex: 1; padding: 20px; border-radius: 8px; text-align: center; background-color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+                        <h3 style="color: #007bff; margin-top: 0;">TOTAL SANTRI</h3>
+                        <p id="rekap-total-santri" style="font-size: 3em; font-weight: bold; color: #007bff; margin: 0;">0</p>
+                    </div>
+                    <div class="rekap-card-main" style="flex: 1; padding: 20px; border-radius: 8px; text-align: center; background-color: #e6ffed; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border: 1px solid #c3e6cb;">
+                        <h3 style="color: #28a745; margin-top: 0;">SUDAH HADIR</h3>
+                        <p id="rekap-sudah-hadir" style="font-size: 3em; font-weight: bold; color: #28a745; margin: 0;">0</p>
+                    </div>
+                    <div class="rekap-card-main" style="flex: 1; padding: 20px; border-radius: 8px; text-align: center; background-color: #f8d7da; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border: 1px solid #f5c6cb;">
+                        <h3 style="color: #dc3545; margin-top: 0;">BELUM HADIR</h3>
+                        <p id="rekap-belum-hadir" style="font-size: 3em; font-weight: bold; color: #dc3545; margin: 0;">0</p>
+                    </div>
+                </div>
+                
+                <div class="diagram-control">
+                    <h3 id="diagram-title">Statistik Kehadiran (Hari Ini)</h3>
+                    <div class="diagram-buttons">
+                        <button id="btn-wa-diagram" onclick="kirimDiagramWhatsApp()">📲 Kirim Diagram via WA</button>
+                        <button id="btn-toggle-diagram" onclick="toggleDiagramMode()">Lihat Rekap Keseluruhan</button>
+                    </div>
+                </div>
+                
+                <div class="diagram-container">
+                    <div id="pie-chart-display" class="pie-chart"></div>
+
+                    <ul class="chart-legend">
+                        <li><span class="legend-color legend-tepat-waktu"></span> Tepat Waktu: <span id="persen-tepat-waktu">0%</span></li>
+                        <li><span class="legend-color legend-terlambat"></span> Terlambat: <span id="persen-terlambat">0%</span></li>
+                        <li><span class="legend-color legend-izin"></span> Izin: <span id="persen-izin">0%</span></li>
+                        <li><span class="legend-color legend-sakit"></span> Sakit: <span id="persen-sakit">0%</span></li>
+                        <li style="margin-top: 10px; font-weight: bold;">Total Absen: <span id="total-absen-count">0</span></li>
+                    </ul>
+                </div>
+                
+            </div>
+
+            <div id="laporan-santri-content" style="display: none;">
+                <h1>Laporan Data Santri Aktif</h1>
+                <p>Berikut adalah daftar lengkap santri yang terdaftar berdasarkan kelasnya.</p>
+                
+                <div id="daftar-laporan-santri">
+                    </div>
+            </div>
+
+            <div id="laporan-absensi-content" style="display: none;">
+                <h1>Riwayat Absensi Santri Keseluruhan</h1>
+                
+                <div class="riwayat-header">
+                    <p>Menampilkan semua catatan absensi sejak sesi pertama.</p>
+                    <button id="btn-wa-laporan" onclick="kirimLaporanWhatsApp()">📱 Kirim Laporan via WhatsApp</button>
+                </div>
+                
+                <div id="riwayat-absen-keseluruhan" class="riwayat-container">
+                    </div>
+            </div>
+
+            <div id="absensi-content" style="display: none;">
+                
+                <h1>Absensi Santri Harian</h1>
+
+                <div class="mode-control">
+                    Mode Absensi: <span id="mode-status" class="mode-on">Terjadwal (Otomatis)</span>
+                    <button id="btn-aktifkan" onclick="setMode(true)" disabled>Aktifkan</button>
+                    <button id="btn-nonaktifkan" onclick="setMode(false)">Nonaktifkan</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="pilih-kelas">Pilih Kelas:</label>
+                    <select id="pilih-kelas" onchange="updateDaftarSantri()">
+                        <option value="">-- Pilih Kelas --</option>
+                        <option value="pp1">PP1</option>
+                        <option value="pp2">PP2</option>
+                        <option value="ibtida1">Ibtida' 1</option>
+                        <option value="ibtida2">Ibtida' 2</option>
+                        <option value="ibtida3">Ibtida' 3</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="pilih-santri">Pilih Santri:</label>
+                    <select id="pilih-santri" disabled>
+                        <option value="">-- Pilih Santri --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="pilih-status">Pilih Status Kehadiran:</label>
+                    <select id="pilih-status" disabled>
+                        <option value="">-- Pilih Status --</option>
+                        <option value="Berangkat Tepat Waktu">Berangkat Tepat Waktu</option>
+                        <option value="Terlambat">Terlambat</option>
+                        <option value="Izin">Izin</option>
+                        <option value="Sakit">Sakit</option>
+                    </select>
+                    <small id="status-keterangan" style="display: block; margin-top: 5px; color: gray;">Status ditentukan otomatis jam 17:00-18:00.</small>
+                </div>
+
+                <button class="submit-button" onclick="catatKehadiran()">SUBMIT</button>
+
+                <div id="status-absen">
+                    Lengkapi data di atas untuk mencatat absensi.
+                </div>
+                
+                <hr style="margin-top: 30px; border-color: #ddd;">
+
+                <div id="riwayat-absen">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h2>Riwayat Absensi Santri (Hari Ini)</h2>
+                        <button id="btn-reset" onclick="resetRiwayatAbsensi()">🔄 Reset Riwayat</button>
+                    </div>
+                    
+                    <ul id="daftar-riwayat">
+                        </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="password-modal" style="display: none;">
+        <div class="modal-content">
+            <h2>Akses Halaman Absensi</h2>
+            <p>Masukkan Sandi:</p>
+            <input type="password" id="password-input" placeholder="Masukkan sandi di sini">
+            <div class="modal-actions">
+                <button onclick="checkPassword()" class="submit-button">MASUK</button>
+                <button onclick="hidePasswordModal()" class="cancel-button">BATAL</button>
+            </div>
+            <p id="password-error" style="color: red; margin-top: 10px; display: none;"></p>
+        </div>
+    </div>
+
+    <script>
+        // Data Santri, sudah diurutkan A-Z
+        const dataSantri = {
+            'pp1': [
+                'Ainur', 'Al', 'Arfan', 'Babang', 'Baim', 'Baqis', 'Bilqis', 
+                'Ceril', 'Dinda', 'Dita', 'Fadil', 'Gendis', 'Kiara', 
+                'Oca', 'Poppy', 'Rafa', 'Satria'
+            ].sort(), 
+            'pp2': [
+                'Aira', 'Ajmal', 'Anna', 'Arsyad', 'Asnan', 'Dzikri', 'Faeja', 
+                'Fathan', 'Maresta', 'Piki', 'Raisya', 'Syakilla', 'Zafira', 
+                'Zelda'
+            ].sort(),
+            'ibtida1': [
+                'Alya', 'Eksel', 'Hanifa', 'Kesar', 'Michelle', 'Yunita', 
+                'Zam - Zam', 'Zhuan'
+            ].sort(),
+            'ibtida2': [
+                'Ajeng', 'Arya', 'Fabian', 'Regin'
+            ].sort(),
+            'ibtida3': [
+                'Akbar', 'Anis', 'Denis', 'Fahmi', 'Iki', 'Shifa'
+            ].sort()
+        };
+        
+        // Mapping untuk menampilkan nama kelas yang rapi
+        const classNames = {
+            'pp1': "PP1",
+            'pp2': "PP2",
+            'ibtida1': "Ibtida' 1",
+            'ibtida2': "Ibtida' 2",
+            'ibtida3': "Ibtida' 3"
+        };
+        
+
+        let riwayatAbsensi = [];
+        let isScheduledMode = true; 
+        let todayString; 
+        let isRekapMode = false; 
+        
+        // Nomor WhatsApp tujuan
+        const WA_NUMBER = '6283188831220'; 
+
+        // Password untuk mengakses halaman absensi
+        const ABSENSI_PASSWORD = 'hmpmnurulhuda'; 
+
+        // === FUNGSI PERSISTENSI DAN RESET TOTAL/HARIAN ===
+        
+        function saveData() {
+            localStorage.setItem('riwayat_absensi', JSON.stringify(riwayatAbsensi));
+            localStorage.setItem('last_session_date', todayString);
+        }
+
+        function loadData() {
+            // Sesuai permintaan: Semua dimulai dari 0 saat aplikasi dimuat.
+            riwayatAbsensi = [];
+            
+            const now = new Date();
+            todayString = formatTanggal(now);
+            saveData(); // Simpan data kosong dan tanggal hari ini
+        }
+        
+        function resetRiwayatAbsensi() {
+            if (confirm("Apakah Anda yakin ingin menghapus SEMUA riwayat absensi untuk hari ini? Aksi ini tidak dapat dibatalkan!")) {
+                riwayatAbsensi = riwayatAbsensi.filter(absen => absen.tanggal !== todayString);
+                saveData(); 
+                tampilkanRiwayatHariIni();
+                updateHomeData(); 
+                document.getElementById('status-absen').innerHTML = `‼️ **Riwayat Absensi Berhasil Direset!** Mulai sesi absensi baru.`;
+                document.getElementById('status-absen').style.backgroundColor = '#ffc107'; 
+                document.getElementById('status-absen').style.color = '#333';
+            }
+        }
+        
+        // === FUNGSI UTILITY WAKTU ===
+        function formatWaktu(date) {
+            return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        
+        function formatWaktuDetik(date) {
+            // Format 15.29.24 seperti di contoh gambar
+            return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).replace(/\./g, ':');
+        }
+
+        function formatTanggal(date) {
+            return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        function updateWaktuSekarang() {
+            const waktuElement = document.getElementById('waktu-sekarang');
+            const rekapWaktuElement = document.getElementById('rekap-waktu-display');
+            const now = new Date();
+            const waktu = formatWaktu(now);
+            const waktuDetik = formatWaktuDetik(now);
+            const tanggal = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            
+            // Sidebar Waktu
+            waktuElement.innerHTML = `📅 ${tanggal} | ⏰ **${waktu}**`;
+
+            // Home Rekap Waktu
+            const tanggalSingkat = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            rekapWaktuElement.innerHTML = `${tanggalSingkat} <br> ${waktuDetik}`;
+        }
+
+        // === FUNGSI PASSWORD ABSENSI (Modal Custom) ===
+        function showPasswordModal() {
+            document.getElementById('password-modal').style.display = 'flex';
+            document.getElementById('password-input').value = ''; // Kosongkan input
+            document.getElementById('password-error').style.display = 'none'; // Sembunyikan pesan error
+            document.getElementById('password-input').focus(); // Fokus ke input
+            
+            // Tambahkan event listener untuk tombol Enter
+            document.getElementById('password-input').onkeyup = function(event) {
+                if (event.key === 'Enter') {
+                    checkPassword();
+                }
+            };
+        }
+
+        function hidePasswordModal() {
+            document.getElementById('password-modal').style.display = 'none';
+        }
+
+        function checkPassword() {
+            const inputPassword = document.getElementById('password-input').value;
+            const errorElement = document.getElementById('password-error');
+
+            if (inputPassword === ABSENSI_PASSWORD) {
+                hidePasswordModal();
+                showContent('absensi');
+                // Hapus event listener Enter setelah berhasil
+                document.getElementById('password-input').onkeyup = null; 
+            } else {
+                errorElement.textContent = "Sandi salah. Akses ditolak. Pastikan Anda memasukkan sandi yang benar.";
+                errorElement.style.display = 'block';
+                document.getElementById('password-input').value = ''; // Kosongkan lagi
+                document.getElementById('password-input').focus();
+            }
+        }
+        
+        // === FUNGSI NAVIGASI ===
+        function showContent(contentId) {
+            document.getElementById('home-content').style.display = 'none';
+            document.getElementById('laporan-santri-content').style.display = 'none';
+            document.getElementById('laporan-absensi-content').style.display = 'none'; 
+            document.getElementById('absensi-content').style.display = 'none';
+            
+            document.getElementById('nav-beranda').classList.remove('active');
+            document.getElementById('nav-laporan-santri').classList.remove('active');
+            document.getElementById('nav-laporan-absensi').classList.remove('active'); 
+            document.getElementById('nav-absensi').classList.remove('active');
+
+            if (contentId === 'home') {
+                document.getElementById('home-content').style.display = 'block';
+                document.getElementById('nav-beranda').classList.add('active');
+                updateHomeData();
+                toggleDiagramMode(false); 
+            } else if (contentId === 'laporan-santri') {
+                document.getElementById('laporan-santri-content').style.display = 'block';
+                document.getElementById('nav-laporan-santri').classList.add('active');
+                generateLaporanSantri(); 
+            } else if (contentId === 'laporan-absensi') {
+                document.getElementById('laporan-absensi-content').style.display = 'block';
+                document.getElementById('nav-laporan-absensi').classList.add('active');
+                tampilkanRiwayatAbsensiKeseluruhan(); 
+            } else if (contentId === 'absensi') {
+                document.getElementById('absensi-content').style.display = 'block';
+                document.getElementById('nav-absensi').classList.add('active');
+                // Panggil updateDaftarSantri dan tampilkanRiwayatHariIni saat membuka halaman Absensi
+                updateDaftarSantri(); 
+                tampilkanRiwayatHariIni();
+            }
+        }
+        
+        // === FUNGSI LAPORAN DATA SANTRI (MASTER) ===
+        function generateLaporanSantri() {
+            const daftarLaporanElement = document.getElementById('daftar-laporan-santri');
+            daftarLaporanElement.innerHTML = ''; 
+
+            const kelasKeys = Object.keys(dataSantri);
+            
+            kelasKeys.forEach(key => {
+                const section = document.createElement('div');
+                section.className = 'report-section';
+
+                const kelasNama = classNames[key] || key;
+                const santriList = dataSantri[key];
+                
+                const header = document.createElement('h3');
+                header.textContent = `Kelas ${kelasNama} (${santriList.length} Santri)`;
+                section.appendChild(header);
+
+                const ul = document.createElement('ol');
+                ul.className = 'santri-list';
+                santriList.forEach(santri => {
+                    const li = document.createElement('li');
+                    li.textContent = santri;
+                    ul.appendChild(li);
+                });
+                section.appendChild(ul);
+                
+                daftarLaporanElement.appendChild(section);
+            });
+        }
+        
+        // === FUNGSI LAPORAN DATA ABSENSI KESELURUHAN & WA ===
+        function tampilkanRiwayatAbsensiKeseluruhan() {
+            const riwayatElement = document.getElementById('riwayat-absen-keseluruhan');
+            riwayatElement.innerHTML = ''; 
+            
+            if (riwayatAbsensi.length === 0) {
+                riwayatElement.innerHTML = '<p style="text-align: center; color: #666;">Belum ada catatan absensi yang tersimpan.</p>';
+                return;
+            }
+
+            const sortedRiwayat = [...riwayatAbsensi].sort((a, b) => {
+                const dateA = new Date(a.tanggal.replace(/(\s+\w+)$/, '') + " " + a.waktu); 
+                const dateB = new Date(b.tanggal.replace(/(\s+\w+)$/, '') + " " + b.waktu); 
+                return dateB - dateA;
+            });
+
+
+            sortedRiwayat.forEach(absen => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'riwayat-item';
+
+                const statusClass = getStatusClass(absen.status);
+
+                itemDiv.innerHTML = `
+                    <div class="riwayat-info">
+                        <strong>${absen.santri}</strong> (${absen.kelas})
+                        <small>Tanggal: ${absen.tanggal}, Pukul ${absen.waktu}</small>
+                    </div>
+                    <span class="${statusClass}">${absen.status}</span>
+                `;
+                riwayatElement.appendChild(itemDiv);
+            });
+        }
+        
+        function kirimLaporanWhatsApp() {
+            if (riwayatAbsensi.length === 0) {
+                alert("Tidak ada data absensi yang tersimpan untuk dikirim.");
+                return;
+            }
+            
+            const sortedRiwayat = [...riwayatAbsensi].sort((a, b) => {
+                const dateA = new Date(a.tanggal.replace(/(\s+\w+)$/, '') + " " + a.waktu); 
+                const dateB = new Date(b.tanggal.replace(/(\s+\w+)$/, '') + " " + b.waktu); 
+                return dateA - dateB;
+            });
+
+            let textMessage = `*LAPORAN DATA ABSENSI SANTRI KESELURUHAN*\n\n`;
+            
+            textMessage += `-------------------------------------------------\n`;
+            textMessage += `| Tgl/Wkt | Kls | Santri | Status |\n`;
+            textMessage += `-------------------------------------------------\n`;
+
+            sortedRiwayat.forEach(absen => {
+                const tanggalSingkat = absen.tanggal.split(',')[0].trim();
+                const waktuSingkat = absen.waktu.substring(0, 5); 
+                const kelasSingkat = absen.kelas.replace(/[^0-9]/g, ''); 
+                const santriSingkat = absen.santri.substring(0, 7); 
+                const statusSingkat = absen.status.replace(/Berangkat Tepat Waktu/g, 'Hadir');
+
+                textMessage += `${tanggalSingkat} ${waktuSingkat} | ${kelasSingkat} | ${santriSingkat} | ${statusSingkat} \n`;
+            });
+            
+            textMessage += `-------------------------------------------------\n`;
+            textMessage += `\nLaporan ini dibuat secara otomatis melalui Sistem Informasi Absensi Santri. Total ${riwayatAbsensi.length} catatan absensi telah dikirim.`;
+            
+            const encodedMessage = encodeURIComponent(textMessage);
+            
+            const waLink = `https://wa.me/${WA_NUMBER}?text=${encodedMessage}`;
+            
+            window.open(waLink, '_blank');
+        }
+
+
+        // === FUNGSI HOME DAN DIAGRAM (DITINGKATKAN) ===
+        function countTotalSantri() {
+            let count = 0;
+            for (const kelas in dataSantri) {
+                count += dataSantri[kelas].length;
+            }
+            return count;
+        }
+
+        function toggleDiagramMode(forceRekap = null) {
+            const btn = document.getElementById('btn-toggle-diagram');
+            const title = document.getElementById('diagram-title');
+            
+            if (forceRekap !== null) {
+                isRekapMode = forceRekap;
+            } else {
+                isRekapMode = !isRekapMode;
+            }
+
+            if (isRekapMode) {
+                title.textContent = "Statistik Kehadiran (Rekap Keseluruhan)";
+                btn.textContent = "Lihat Statistik Hari Ini";
+                updateRekapDiagram();
+            } else {
+                title.textContent = "Statistik Kehadiran (Hari Ini)";
+                btn.textContent = "Lihat Rekap Keseluruhan";
+                updateDiagram(); 
+            }
+        }
+        
+        function kirimDiagramWhatsApp() {
+            const title = document.getElementById('diagram-title').textContent;
+            const totalAbsen = document.getElementById('total-absen-count').textContent;
+            const persenTepatWaktu = document.getElementById('persen-tepat-waktu').textContent;
+            const persenTerlambat = document.getElementById('persen-terlambat').textContent;
+            const persenIzin = document.getElementById('persen-izin').textContent;
+            const persenSakit = document.getElementById('persen-sakit').textContent;
+            const waktuLaporan = formatWaktu(new Date());
+
+            let textMessage = `*LAPORAN STATISTIK KEHADIRAN*\n`;
+            textMessage += `_(Dikirim pada ${formatTanggal(new Date())} pukul ${waktuLaporan})_\n\n`;
+            
+            textMessage += `*Mode:* ${title}\n`;
+            textMessage += `*Total Catatan Absen:* ${totalAbsen}\n`;
+            textMessage += `-----------------------------------------\n`;
+            textMessage += `✅ Tepat Waktu: *${persenTepatWaktu}*\n`;
+            textMessage += `❌ Terlambat: *${persenTerlambat}*\n`;
+            textMessage += `📝 Izin: *${persenIzin}*\n`;
+            textMessage += `🤒 Sakit: *${persenSakit}*\n`;
+            textMessage += `-----------------------------------------\n`;
+            textMessage += `\nLaporan ini dibuat secara otomatis melalui Sistem Informasi Absensi Santri.`;
+
+            const encodedMessage = encodeURIComponent(textMessage);
+            const waLink = `https://wa.me/${WA_NUMBER}?text=${encodedMessage}`;
+            
+            window.open(waLink, '_blank');
+
+        }
+
+
+        function updateHomeData() {
+            const totalSantri = countTotalSantri();
+            document.getElementById('rekap-total-santri').textContent = totalSantri;
+            
+            // Menghitung jumlah yang Sudah Hadir (Tepat Waktu atau Terlambat) hari ini
+            const absensiHariIni = riwayatAbsensi.filter(absen => absen.tanggal === todayString);
+            
+            // HANYA hitung absensi hadir/terlambat (karena Izin/Sakit tidak mengurangi kuota hadir)
+            const sudahHadir = absensiHariIni.filter(absen => 
+                absen.status === 'Berangkat Tepat Waktu' || absen.status === 'Terlambat'
+            ).length;
+
+            const belumHadir = totalSantri - sudahHadir;
+            
+            // Memperbarui kartu
+            document.getElementById('rekap-sudah-hadir').textContent = sudahHadir;
+            document.getElementById('rekap-belum-hadir').textContent = belumHadir;
+            
+            // Memperbarui diagram/statistik di bawahnya
+            if (isRekapMode) {
+                updateRekapDiagram();
+            } else {
+                updateDiagram();
+            }
+        }
+
+        function updateRekapDiagram() {
+            const absensiTotal = riwayatAbsensi;
+            const totalAbsen = absensiTotal.length;
+
+            document.getElementById('total-absen-count').textContent = totalAbsen;
+            
+            const chartElement = document.getElementById('pie-chart-display');
+            
+            if (totalAbsen === 0) {
+                chartElement.style.background = 'conic-gradient(#ccc 100%)';
+                document.getElementById('persen-tepat-waktu').textContent = '0%';
+                document.getElementById('persen-terlambat').textContent = '0%';
+                document.getElementById('persen-izin').textContent = '0%';
+                document.getElementById('persen-sakit').textContent = '0%';
+                return;
+            }
+
+            const counts = absensiTotal.reduce((acc, absen) => {
+                const status = (absen.status === 'Berangkat Tepat Waktu') ? 'Tepat Waktu' : absen.status;
+                acc[status] = (acc[status] || 0) + 1;
+                return acc;
+            }, {});
+
+            const stats = {
+                "Tepat Waktu": counts["Tepat Waktu"] || 0,
+                "Terlambat": counts["Terlambat"] || 0,
+                "Izin": counts["Izin"] || 0,
+                "Sakit": counts["Sakit"] || 0
+            };
+            
+            const totalStatistik = stats["Tepat Waktu"] + stats["Terlambat"] + stats["Izin"] + stats["Sakit"];
+            
+            const percentages = {
+                "Tepat Waktu": ((stats["Tepat Waktu"] / totalStatistik) * 100).toFixed(1),
+                "Terlambat": ((stats["Terlambat"] / totalStatistik) * 100).toFixed(1),
+                "Izin": ((stats["Izin"] / totalStatistik) * 100).toFixed(1),
+                "Sakit": ((stats["Sakit"] / totalStatistik) * 100).toFixed(1)
+            };
+            
+            document.getElementById('persen-tepat-waktu').textContent = `${percentages["Tepat Waktu"]}%`;
+            document.getElementById('persen-terlambat').textContent = `${percentages["Terlambat"]}%`;
+            document.getElementById('persen-izin').textContent = `${percentages["Izin"]}%`;
+            document.getElementById('persen-sakit').textContent = `${percentages["Sakit"]}%`;
+            document.getElementById('total-absen-count').textContent = totalStatistik;
+
+            drawPieChart(stats);
+        }
+
+        function updateDiagram() {
+            const absensiHariIni = riwayatAbsensi.filter(absen => absen.tanggal === todayString);
+            const totalAbsen = absensiHariIni.length;
+            
+            document.getElementById('total-absen-count').textContent = totalAbsen; 
+            
+            const chartElement = document.getElementById('pie-chart-display');
+            
+            if (totalAbsen === 0) {
+                chartElement.style.background = 'conic-gradient(#ccc 100%)';
+                document.getElementById('persen-tepat-waktu').textContent = '0%';
+                document.getElementById('persen-terlambat').textContent = '0%';
+                document.getElementById('persen-izin').textContent = '0%';
+                document.getElementById('persen-sakit').textContent = '0%';
+                return;
+            }
+
+            const counts = absensiHariIni.reduce((acc, absen) => {
+                const status = (absen.status === 'Berangkat Tepat Waktu') ? 'Tepat Waktu' : absen.status;
+                acc[status] = (acc[status] || 0) + 1;
+                return acc;
+            }, {});
+
+            const stats = {
+                "Tepat Waktu": counts["Tepat Waktu"] || 0,
+                "Terlambat": counts["Terlambat"] || 0,
+                "Izin": counts["Izin"] || 0,
+                "Sakit": counts["Sakit"] || 0
+            };
+            
+            const totalStatistik = stats["Tepat Waktu"] + stats["Terlambat"] + stats["Izin"] + stats["Sakit"];
+            
+            const percentages = {
+                "Tepat Waktu": ((stats["Tepat Waktu"] / totalStatistik) * 100).toFixed(1),
+                "Terlambat": ((stats["Terlambat"] / totalStatistik) * 100).toFixed(1),
+                "Izin": ((stats["Izin"] / totalStatistik) * 100).toFixed(1),
+                "Sakit": ((stats["Sakit"] / totalStatistik) * 100).toFixed(1)
+            };
+            
+            document.getElementById('persen-tepat-waktu').textContent = `${percentages["Tepat Waktu"]}%`;
+            document.getElementById('persen-terlambat').textContent = `${percentages["Terlambat"]}%`;
+            document.getElementById('persen-izin').textContent = `${percentages["Izin"]}%`;
+            document.getElementById('persen-sakit').textContent = `${percentages["Sakit"]}%`;
+            document.getElementById('total-absen-count').textContent = totalStatistik;
+
+            drawPieChart(stats);
+        }
+
+        function drawPieChart(stats) {
+            const total = stats["Tepat Waktu"] + stats["Terlambat"] + stats["Izin"] + stats["Sakit"];
+            if (total === 0) return;
+
+            const degTepatWaktu = (stats["Tepat Waktu"] / total) * 360;
+            const degTerlambat = (stats["Terlambat"] / total) * 360;
+            const degIzin = (stats["Izin"] / total) * 360;
+            
+            document.getElementById('pie-chart-display').style.background = `conic-gradient(
+                #28a745 0deg ${degTepatWaktu}deg, 
+                #dc3545 ${degTepatWaktu}deg ${degTepatWaktu + degTerlambat}deg, 
+                #007bff ${degTepatWaktu + degTerlambat}deg ${degTepatWaktu + degTerlambat + degIzin}deg, 
+                #ffc107 ${degTepatWaktu + degTerlambat + degIzin}deg 360deg 
+            )`;
+        }
+
+
+        // === FUNGSI ABSENSI ===
+        function setMode(isScheduled) {
+            isScheduledMode = isScheduled;
+            const selectStatus = document.getElementById('pilih-status');
+            const statusKeterangan = document.getElementById('status-keterangan');
+            const modeStatusElement = document.getElementById('mode-status');
+            const btnAktifkan = document.getElementById('btn-aktifkan');
+            const btnNonaktifkan = document.getElementById('btn-nonaktifkan');
+
+            if (isScheduledMode) {
+                modeStatusElement.textContent = 'Terjadwal (Otomatis)';
+                modeStatusElement.className = 'mode-on';
+                selectStatus.disabled = true;
+                statusKeterangan.style.display = 'block';
+                btnAktifkan.disabled = true;
+                btnNonaktifkan.disabled = false;
+            } else {
+                modeStatusElement.textContent = 'Bebas (Manual)';
+                modeStatusElement.className = 'mode-off';
+                selectStatus.disabled = false;
+                statusKeterangan.style.display = 'none';
+                btnAktifkan.disabled = false;
+                btnNonaktifkan.disabled = true;
+            }
+            selectStatus.value = ""; 
+            document.getElementById('status-absen').innerHTML = 'Lengkapi data di atas untuk mencatat absensi.';
+            document.getElementById('status-absen').style.backgroundColor = '#e9ecef';
+        }
+
+        function getAutomaticStatus(currentTime) {
+            const currentHours = currentTime.getHours();
+            const currentMinutes = currentTime.getMinutes();
+            const currentTotalMinutes = currentHours * 60 + currentMinutes;
+
+            const START_TEPAT_WAKTU = 17 * 60;        
+            const END_TEPAT_WAKTU = 17 * 60 + 40;     
+            const START_TERLAMBAT = 17 * 60 + 41;     
+            const END_TERLAMBAT = 18 * 60;            
+
+            if (currentTotalMinutes >= START_TEPAT_WAKTU && currentTotalMinutes <= END_TEPAT_WAKTU) {
+                return 'Berangkat Tepat Waktu';
+            } else if (currentTotalMinutes >= START_TERLAMBAT && currentTotalMinutes <= END_TERLAMBAT) {
+                return 'Terlambat';
+            } else {
+                return null;
+            }
+        }
+
+        function updateDaftarSantri() {
+            const selectKelas = document.getElementById('pilih-kelas');
+            const selectSantri = document.getElementById('pilih-santri');
+            const selectedKelas = selectKelas.value;
+
+            selectSantri.innerHTML = '<option value="">-- Pilih Santri --</option>';
+
+            if (selectedKelas) {
+                const santriDiKelas = dataSantri[selectedKelas];
+                santriDiKelas.forEach(namaSantri => {
+                    const option = document.createElement('option');
+                    option.value = namaSantri; 
+                    option.textContent = namaSantri;
+                    selectSantri.appendChild(option);
+                });
+                selectSantri.disabled = false; 
+            } else {
+                selectSantri.disabled = true;
+            }
+
+            document.getElementById('status-absen').innerHTML = 'Lengkapi data di atas untuk mencatat absensi.';
+            document.getElementById('status-absen').style.backgroundColor = '#e9ecef';
+            document.getElementById('status-absen').classList.remove('error');
+        }
+
+        function catatKehadiran() {
+            const selectKelas = document.getElementById('pilih-kelas');
+            const selectSantri = document.getElementById('pilih-santri');
+            const selectStatus = document.getElementById('pilih-status');
+            const statusAbsenElement = document.getElementById('status-absen');
+            
+            const waktuSaatIni = new Date();
+            const tanggalHariIni = todayString; 
+            const waktuFormat = formatWaktu(waktuSaatIni);
+
+            const kelas = selectKelas.options[selectKelas.selectedIndex].text;
+            const santri = selectSantri.value;
+            let status = selectStatus.value;
+            
+            if (!selectKelas.value || !santri) {
+                statusAbsenElement.innerHTML = '‼️ **Gagal Submit!** Harap pilih **Kelas** dan **Santri** terlebih dahulu.';
+                statusAbsenElement.style.backgroundColor = '#f8d7da';
+                statusAbsenElement.classList.add('error');
+                return;
+            }
+
+            if (isScheduledMode) {
+                const statusOtomatis = getAutomaticStatus(waktuSaatIni);
+                if (statusOtomatis) {
+                    status = statusOtomatis;
+                } else {
+                    statusAbsenElement.innerHTML = `⚠️ Absensi Otomatis Gagal. Waktu saat ini (**${waktuFormat}**) berada di luar jadwal (17:00-18:00). Silakan **Nonaktifkan** mode untuk memilih status manual.`;
+                    statusAbsenElement.style.backgroundColor = '#ffc107';
+                    statusAbsenElement.style.color = '#333';
+                    statusAbsenElement.classList.remove('error');
+                    return;
+                }
+            } else {
+                if (!status) {
+                    statusAbsenElement.innerHTML = '‼️ **Gagal Submit!** Dalam mode Bebas, Anda harus memilih **Status** kehadiran.';
+                    statusAbsenElement.style.backgroundColor = '#f8d7da';
+                    statusAbsenElement.classList.add('error');
+                    return;
+                }
+            }
+            
+            if (status === 'Berangkat Tepat Waktu' || status === 'Terlambat') {
+                const sudahAbsenHadirHariIni = riwayatAbsensi.some(absen => 
+                    absen.santri === santri && absen.tanggal === tanggalHariIni && 
+                    (absen.status === 'Berangkat Tepat Waktu' || absen.status === 'Terlambat')
+                );
+
+                if (sudahAbsenHadirHariIni) {
+                    statusAbsenElement.innerHTML = `⚠️ **Gagal Submit!** Santri **${santri}** sudah dicatat hadir/terlambat hari ini.`;
+                    statusAbsenElement.style.backgroundColor = '#ffc107';
+                    statusAbsenElement.style.color = '#333';
+                    statusAbsenElement.classList.remove('error');
+                    return;
+                }
+            }
+
+            const dataAbsenBaru = {
+                kelas: kelas,
+                santri: santri,
+                status: status, 
+                tanggal: tanggalHariIni,
+                waktu: waktuFormat
+            };
+            riwayatAbsensi.push(dataAbsenBaru);
+            
+            saveData(); 
+
+            statusAbsenElement.innerHTML = `✅ **Absensi Berhasil!** Santri **${santri}** (${kelas}) dicatat **${status}** pada Pukul ${waktuFormat}.`;
+            statusAbsenElement.style.backgroundColor = '#28a745'; 
+            statusAbsenElement.style.color = 'white';
+            statusAbsenElement.classList.remove('error');
+            
+            tampilkanRiwayatHariIni();
+            updateHomeData(); // PENTING: Memanggil updateHomeData agar kartu rekap berubah
+            
+            selectSantri.value = "";
+            selectStatus.value = "";
+        }
+
+        // === FUNGSI RIWAYAT DAN STATUS ===
+        function getStatusClass(status) {
+            switch(status) {
+                case 'Berangkat Tepat Waktu': return 'status-ok'; 
+                case 'Terlambat': return 'status-late';     
+                case 'Izin': return 'status-permission';
+                case 'Sakit': return 'status-sick';
+                default: return '';
+            }
+        }
+
+        function tampilkanRiwayatHariIni() {
+            const daftarRiwayatElement = document.getElementById('daftar-riwayat');
+            daftarRiwayatElement.innerHTML = ''; 
+
+            const riwayatHariIni = riwayatAbsensi.filter(absen => absen.tanggal === todayString);
+
+            riwayatHariIni.sort((a, b) => new Date(b.tanggal + " " + b.waktu) - new Date(a.tanggal + " " + a.waktu));
+
+            riwayatHariIni.forEach(absen => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div>
+                        <strong>${absen.santri}</strong> (${absen.kelas}) <br>
+                        <small>${absen.tanggal}, Pukul ${absen.waktu}</small>
+                    </div>
+                    <span class="${getStatusClass(absen.status)}">${absen.status}</span>
+                `;
+                daftarRiwayatElement.appendChild(li); 
+            });
+
+            if (riwayatHariIni.length === 0) {
+                daftarRiwayatElement.innerHTML = '<li>Belum ada catatan absensi hari ini.</li>';
+            }
+        }
+
+        // Jalankan saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData(); // Memastikan riwayat kosong dan tanggal diatur
+
+            updateWaktuSekarang();
+            setInterval(updateWaktuSekarang, 1000); 
+
+            showContent('home'); 
+            setMode(true); 
+        });
+        
+    </script>
+</body>
+</html>
